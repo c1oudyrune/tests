@@ -1,0 +1,90 @@
+import pytest
+import requests
+import allure
+from pydantic import BaseModel, ValidationError, Field
+from typing import List, Optional
+
+class User(BaseModel):
+    id: int
+    username: str
+    firstName: str
+    lastName: str
+    email: str
+    password: str
+    phone: str
+    userStatus: int
+
+class Order(BaseModel):
+    id: int
+    petId: int
+    quantity: int
+    shipDate: str
+    status: str
+    complete: bool
+
+BASE_URL = "https://petstore.swagger.io/v2"
+
+@allure.feature("User")
+def test_create_get_delete_user():
+    username = "testuser_allure"
+
+
+    user_data = {
+        "id": 0,
+        "username": username,
+        "firstName": "Test",
+        "lastName": "User",
+        "email": "testuser@example.com",
+        "password": "password",
+        "phone": "1234567890",
+        "userStatus": 0
+    }
+
+
+    user = User(**user_data)
+
+    with allure.step("Создать пользователя"):
+        response = requests.post(f"{BASE_URL}/user", json=user.dict())
+        assert response.status_code == 200
+        allure.attach(str(response.json()), name="Response Create User", attachment_type=allure.attachment_type.JSON)
+
+    with allure.step("Получить пользователя"):
+        response = requests.get(f"{BASE_URL}/user/{username}")
+        assert response.status_code == 200
+        user_response = response.json()
+
+        User(**user_response)
+
+    with allure.step("Удалить пользователя"):
+        response = requests.delete(f"{BASE_URL}/user/{username}")
+        assert response.status_code == 200
+
+@allure.feature("Store")
+def test_place_order_and_get():
+    order_data = {
+        "id": 0,
+        "petId": 1,
+        "quantity": 1,
+        "shipDate": "2023-10-01T00:00:00.000Z",
+        "status": "placed",
+        "complete": True
+    }
+
+
+    order = Order(**order_data)
+
+
+    with allure.step("Разместить заказ"):
+        response = requests.post(f"{BASE_URL}/store/order", json=order.dict())
+        assert response.status_code == 200
+        order_response = response.json()
+
+        Order(**order_response)
+
+
+    order_id = order_response['id']
+    with allure.step("Получить заказ по ID"):
+        response = requests.get(f"{BASE_URL}/store/order/{order_id}")
+        assert response.status_code == 200
+        retrieved_order = response.json()
+        Order(**retrieved_order)
