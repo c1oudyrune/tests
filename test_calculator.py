@@ -47,7 +47,7 @@ def test_subtract(num1, num2, expected):
     (2.5, 2.0, 5.0),
 ])
 def test_multiply(num1, num2, expected):
-    """Тест функции умножения с различными входными данными."""
+    
     assert multiply(num1, num2) == expected
 
 
@@ -62,12 +62,12 @@ def test_multiply(num1, num2, expected):
     (100, 0.5, 200.0),
 ])
 def test_divide(num1, num2, expected):
-    """Тест функции деления для корректных случаев."""
+    
     assert divide(num1, num2) == expected
 
 
 def test_divide_by_zero():
-    """Тест функции деления на ноль, ожидается ValueError."""
+    
     with pytest.raises(ValueError, match="Деление на ноль невозможно!"):
         divide(10, 0)
 
@@ -131,7 +131,7 @@ def test_add_very_small_negative():
 
 def test_subtract_large_from_small():
 
-    assert subtract(1000.0, 1.0e-9) == pytest.approx(1000.0) # Используем pytest.approx для сравнения float
+    assert subtract(1000.0, 1.0e-9) == pytest.approx(1000.0) 
 
 
 def test_multiply_by_very_small_number():
