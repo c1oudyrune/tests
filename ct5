@@ -1,0 +1,102 @@
+import requests
+
+
+class BaseRequest:
+    def __init__(self, base_url):
+        self.base_url = base_url
+
+    def get(self, endpoint, params=None):
+        url = f"{self.base_url}{endpoint}"
+        response = requests.get(url, params=params)
+        return response
+
+    def post(self, endpoint, data=None):
+        url = f"{self.base_url}{endpoint}"
+        response = requests.post(url, json=data)
+        return response
+
+    def put(self, endpoint, data=None):
+        url = f"{self.base_url}{endpoint}"
+        response = requests.put(url, json=data)
+        return response
+
+    def delete(self, endpoint):
+        url = f"{self.base_url}{endpoint}"
+        response = requests.delete(url)
+        return response
+
+#User
+class UserAPI(BaseRequest):
+    def get_user_by_username(self, username):
+        return self.get(f"/user/{username}")
+
+    def create_user(self, user_data):
+        return self.post("/user", data=user_data)
+
+    def update_user(self, username, user_data):
+        return self.put(f"/user/{username}", data=user_data)
+
+    def delete_user(self, username):
+        return self.delete(f"/user/{username}")
+
+#Store
+class StoreAPI(BaseRequest):
+    def get_inventory(self):
+        return self.get("/store/inventory")
+
+    def place_order(self, order_data):
+        return self.post("/store/order", data=order_data)
+
+    def get_order_by_id(self, order_id):
+        return self.get(f"/store/order/{order_id}")
+
+    def delete_order(self, order_id):
+        return self.delete(f"/store/order/{order_id}")
+
+
+def get_json_response(response):
+    try:
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.HTTPError as http_err:
+        print(f"HTTP error: {http_err} - Response text: {response.text}")
+    except requests.exceptions.JSONDecodeError:
+        print(f"Invalid JSON response: {response.text}")
+    return None
+
+
+if __name__ == "__main__":
+    base_url = "https://petstore.swagger.io/v2"
+    user_api = UserAPI(base_url)
+    store_api = StoreAPI(base_url)
+
+    response = user_api.get_user_by_username("testuser")
+    user_json = get_json_response(response)
+    print("Get User:", response.status_code, user_json)
+    new_user = {
+        "id": 0,
+        "username": "testuser",
+        "firstName": "Test",
+        "lastName": "User",
+        "email": "testuser@example.com",
+        "password": "password",
+        "phone": "1234567890",
+        "userStatus": 0
+    }
+    response = user_api.create_user(new_user)
+    create_user_json = get_json_response(response)
+    print("Create User:", response.status_code, create_user_json)
+    response = store_api.get_inventory()
+    inventory_json = get_json_response(response)
+    print("Get Inventory:", response.status_code, inventory_json)
+    new_order = {
+        "id": 0,
+        "petId": 1,
+        "quantity": 1,
+        "shipDate": "2023-10-01T00:00:00.000Z",
+        "status": "placed",
+        "complete": True
+    }
+    response = store_api.place_order(new_order)
+    place_order_json = get_json_response(response)
+    print("Place Order:", response.status_code, place_order_json)
